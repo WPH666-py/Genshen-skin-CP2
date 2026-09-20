@@ -1,0 +1,70 @@
+/**
+ * 原神CP2 · 奥黛塔×沃雅妮莎 —— 界面配色变量
+ *
+ * 本文件同时被两个消费者读取:
+ *   1. DeepKing 的皮肤转换器(src/utils/skinConverter.ts)—— 抓取「--名: #色值」
+ *   2. 本仓库自己的页面/主题
+ *
+ * 关于变量命名规则、为什么夜景配色用 duskcolor 前缀、
+ * 以及注释里绝对不能写的四种字符, 全部记在 src/client/SKIN-NOTES.md。
+ * 改本文件前请先读那份说明, 改完运行: genshen-cp2 deepking --check
+ *
+ * 主色取自「相依」插画: 星裙的钴蓝 #3a6fd8、发梢的薰衣草紫与青蓝。
+ */
+
+:root {
+  /* 亮色 · 白日(取自「相依」插画的浅蓝礼服与白底) */
+
+  /* 底色: 主背景、层2、层3 */
+  --bg-base: #ffffff;
+  --bg-layer-1: #ffffff;
+  --bg-layer-2: #e9effc;
+  --bg-layer-3: #d8e2f8;
+
+  /* 文字: 主、次、弱 */
+  --label-primary: #141c36;
+  --label-secondary: #41507a;
+  --label-tertiary: #7386ab;
+
+  /* 品牌强调色: 星裙钴蓝 */
+  --brand-primary: #3a6fd8;
+  --accent: #3a6fd8;
+  --primary: #3a6fd8;
+
+  /* 交互态 */
+  --interactive-bg-hover-solid: #dbe5fa;
+  --interactive-bg-active: #c2d3f4;
+
+  /* 边框 */
+  --border-l1: #d3dff5;
+  --border-l2: #becfef;
+  --border: #becfef;
+
+  /* 状态色 */
+  --system-warn-bg: #fff8e6;
+  --system-warn-text: #8a6a00;
+}
+
+/* 夜景配色(取自「相依」插画的深海底色): 主题名 midnight, 变量统一 duskcolor 前缀 */
+[data-theme="midnight"],
+.midnight-theme {
+  --duskcolor-bgbase: #0f1830;
+  --duskcolor-bglayer2: #16213f;
+  --duskcolor-bglayer3: #1f2d52;
+
+  --duskcolor-labelprimary: #e2e9fa;
+  --duskcolor-labelsecondary: #a2b4d8;
+  --duskcolor-labeltertiary: #7688ae;
+
+  /* 夜间强调色: 星裙亮面, 比日景提亮一档 */
+  --duskcolor-brandprimary: #5d8ce8;
+
+  --duskcolor-hoversolid: #1f2d52;
+  --duskcolor-activebg: #2a3a66;
+
+  --duskcolor-borderl1: #22305a;
+  --duskcolor-borderl2: #2c3d6b;
+
+  --duskcolor-warnbg: #38301a;
+  --duskcolor-warntext: #e6d7a2;
+}

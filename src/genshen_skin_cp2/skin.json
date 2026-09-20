@@ -1,0 +1,11 @@
+{
+  "name": "原神CP2 · 奥黛塔×沃雅妮莎",
+  "nameEn": "Genshin CP2 · Odette x Voyanisa",
+  "accent": "#3a6fd8",
+  "tagline": "奥黛塔与沃雅妮莎的星蓝同人主题：相依 / 星轨 / 比心",
+  "description": "原神 CP 壁纸套件2 的 DeepKing 界面皮肤。主色取自「相依」插画的钴蓝星裙与薰衣草紫，亮色为白日浅蓝，夜景为深海钴蓝；桌面壁纸、VSCode 扩展与桌宠见仓库同系列工具。",
+  "version": "0.1.0",
+  "license": "MIT",
+  "homepage": "https://github.com/WPH666-py/Genshen-skin-CP2",
+  "keywords": ["原神", "genshin", "skin", "deepking", "奥黛塔", "沃雅妮莎", "壁纸"]
+}

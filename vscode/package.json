@@ -1,0 +1,100 @@
+{
+  "name": "genshen-skin-cp2",
+  "displayName": "原神CP2 — 奥黛塔×沃雅妮莎",
+  "description": "原神 CP 壁纸套件1: 单张样式壁纸一键切换 · 桌面桌宠 · 多 IDE 皮肤",
+  "version": "0.1.0",
+  "publisher": "wp666",
+  "license": "MIT",
+  "icon": "media/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/WPH666-py/Genshen-skin-CP2.git"
+  },
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Other",
+    "Themes"
+  ],
+  "main": "./extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "genshencp2.openGallery",
+        "title": "原神CP2: 打开皮肤画廊"
+      },
+      {
+        "command": "genshencp2.set1",
+        "title": "原神CP2: 第1张 · 比心"
+      },
+      {
+        "command": "genshencp2.set2",
+        "title": "原神CP2: 第2张 · 共舞"
+      },
+      {
+        "command": "genshencp2.set3",
+        "title": "原神CP2: 第3张 · 道歉"
+      },
+      {
+        "command": "genshencp2.setRandom",
+        "title": "原神CP2: 随机换一张"
+      },
+      {
+        "command": "genshencp2.openSwitcher",
+        "title": "原神CP2: 打开壁纸切换器"
+      },
+      {
+        "command": "genshencp2.startPet",
+        "title": "原神CP2: 启动桌面桌宠"
+      },
+      {
+        "command": "genshencp2.generateAll",
+        "title": "原神CP2: 生成全部样式(含 JetBrains 背景图)"
+      },
+      {
+        "command": "genshencp2.showInfo",
+        "title": "原神CP2: 环境自检"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "genshencp2",
+          "title": "原神CP2",
+          "icon": "media/genshencp2.svg"
+        }
+      ]
+    },
+    "views": {
+      "genshencp2": [
+        {
+          "id": "genshencp2.gallery",
+          "name": "皮肤画廊",
+          "type": "webview"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Genshin Skin CP1",
+      "properties": {
+        "genshencp2.pythonPath": {
+          "type": "string",
+          "default": "",
+          "description": "Python 解释器路径。留空自动查找 python / python3。"
+        },
+        "genshencp2.repoPath": {
+          "type": "string",
+          "default": "",
+          "description": "仓库路径(含 src/genshen_skin_cp2 或 tools/wallpaper.py)。留空自动查找 pip 安装与常见克隆位置。"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "node prepack.js"
+  }
+}
