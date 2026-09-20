@@ -107,16 +107,21 @@ def repo_root():
     return None
 
 
-def api_root():
-    """仓库/包数据所在层, 可能等于 repo_root(), 也可能是 wheel 内的包目录。
+def pkg_root():
+    """包目录 .../genshen_skin_cp2(本模块在它的 engine/ 下, 故向上一层)。
 
-    repo_root() 用于「必须走 GitHub 相对路径」的场景(决定 raw URL);
-    api_root() 用于「只是想读到皮肤文件」的场景, pip 安装下也能工作。
+    pip 安装形态下 skin.json 与 engine/assets 都在这一层, 是「读包内文件」的基准。
     """
-    root = repo_root()
-    if root:
-        return root
-    return os.path.dirname(os.path.abspath(__file__))
+    return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def api_root():
+    """「只是想读到皮肤文件」时的基准目录。
+
+    仓库形态用仓库根(里面有 skin.json + src/client);
+    pip 形态用包目录(里面有随包发布的 skin.json)。
+    """
+    return repo_root() or pkg_root()
 
 
 def is_repo_checkout():
@@ -124,8 +129,8 @@ def is_repo_checkout():
 
 
 def skin_meta():
-    """读 skin.json(仓库形态读仓库根, pip 形态读包内数据)。"""
-    for base in (repo_root(), os.path.dirname(os.path.abspath(__file__))):
+    """读 skin.json(仓库形态读仓库根, pip 形态读包目录)。"""
+    for base in (repo_root(), pkg_root()):
         if not base:
             continue
         p = os.path.join(base, "skin.json")

@@ -35,7 +35,7 @@ def _print_check(root):
     return 0 if ok else 1
 
 
-def _print_what(root):
+def _print_what(root, pip_mode=False):
     print("=" * 60)
     print("  DeepKing 会从本仓库提取到的内容")
     print("=" * 60)
@@ -58,9 +58,14 @@ def _print_what(root):
         for key in ("bg", "text", "accent", "border"):
             print("    %-7s <- %s" % (key, dk._pick(lv, key) or "(缺失, 将派生)"))
     light_img, dark_img, note = dk.find_mascots(root)
-    print("  吉祥物   : %s" % (os.path.relpath(light_img, root) if light_img else "(未找到)"))
-    if dark_img and dark_img != light_img:
-        print("             暗色用 %s" % os.path.relpath(dark_img, root))
+    if light_img:
+        print("  吉祥物   : %s" % os.path.relpath(light_img, root))
+        if dark_img and dark_img != light_img:
+            print("             暗色用 %s" % os.path.relpath(dark_img, root))
+    elif pip_mode:
+        print("  吉祥物   : (pip 形态无仓库文件, 导出时会内联包内插画)")
+    else:
+        print("  吉祥物   : (未找到)")
     print()
     print("  注意: 在线转换的「亮色」精确取自上面的 CSS 变量;")
     print("        「暗色」由 DeepKing 内置算法从亮色派生(偏中性)。")
@@ -78,18 +83,25 @@ def _write_outputs(root, out_dir):
     #               这样导出的 skin JSON 完全自包含, 不依赖任何网络。
     pip_mode = not dk.is_repo_checkout()
     if pip_mode:
-        # 素材已打进 wheel, 取包内任一张插画内联; 找不到再退回公开 raw 地址
+        # 素材已打进 wheel: 直接取包内插画内联成 data URI, 生成的 skin JSON 完全自包含。
+        # 找不到才退回仓库里的公开 raw 地址(需联网)。
         light_url = dark_url = None
         try:
             from . import skin_core as _sc
-            cand = _sc.asset_path(1)
-            if os.path.exists(cand):
-                light_url = dark_url = dk._data_uri(cand)
+            picks = []
+            for i in range(1, _sc.count() + 1):
+                p = _sc.asset_path(i)
+                if os.path.exists(p):
+                    picks.append(p)
+            if picks:
+                # 亮/暗用同一张, 保证水印角色一致(包内只有壁纸插画, 没有专门的
+                # 亮暗水印; 仓库形态才用 mascot-*-light/dark 两张)
+                light_url = dark_url = dk._data_uri(picks[0])
         except Exception:
             pass
         if not light_url:
-            light_url = dk.raw_url("assets/background/mascot-cp1-light.jpg")
-            dark_url = dk.raw_url("assets/background/mascot-cp1-dark.jpg")
+            light_url = dk.raw_url(C.DEEPKING_MASCOT_LIGHT)
+            dark_url = dk.raw_url(C.DEEPKING_MASCOT_DARK)
     else:
         light_img, dark_img, _ = dk.find_mascots(root)
         light_url = dk.raw_url(rel(light_img)) if light_img else None
@@ -147,7 +159,7 @@ def main(argv=None):
             return 0
         return _print_check(root)
     if args.what:
-        return _print_what(root)
+        return _print_what(root, pip_mode)
 
     # 手工校色版自检
     problems = ks.validate()
@@ -169,7 +181,13 @@ def main(argv=None):
     print("  两块调色板: 亮色 bg=%s / 暗色 bg=%s (%d 槽位)"
           % (ks.LIGHT["bg"], ks.DARK["bg"], len(ks.PALETTE_SLOTS)))
     light_img, dark_img, _ = dk.find_mascots(root)
-    print("  吉祥物    : %s" % (os.path.basename(light_img) if light_img else "无"))
+    if light_img:
+        mascot_note = os.path.basename(light_img)
+    elif pip_mode:
+        mascot_note = "已内联包内插画(pip 形态, 无仓库文件)"
+    else:
+        mascot_note = "无"
+    print("  吉祥物    : %s" % mascot_note)
     if warns:
         for w in warns:
             print("  [提示] %s" % w)
