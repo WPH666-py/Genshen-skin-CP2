@@ -153,27 +153,32 @@ def sync(src_key, dst_key, dry_run=False, backup=True):
 
 def check():
     a, b = PACKS["CP1"], PACKS["CP2"]
-    print("  %-20s %-14s %-14s %s" % ("引擎文件", "CP1", "CP2", "状态"))
-    print("  " + "-" * 62)
-    diff = 0
+    print("  %-20s %-14s %-14s %s" % ("引擎文件", "CP1 实际", "CP2 归一化", "状态"))
+    print("  " + "-" * 64)
+    drift = 0
     for name in ENGINE_FILES:
         pa = os.path.join(a["engine"], name)
         pb = os.path.join(b["engine"], name)
-        ha, hb = sha(pa), sha(pb)
-        if ha is None or hb is None:
-            status = "缺失"
-        elif ha == hb:
-            status = "一致"
-        else:
-            status = "不同"
-            diff += 1
-        print("  %-20s %-14s %-14s %s" % (name, ha or "-", hb or "-", status))
+        if not (os.path.exists(pa) and os.path.exists(pb)):
+            print("  %-20s %-14s %-14s %s" % (name, sha(pa) or "-", sha(pb) or "-", "缺失"))
+            drift += 1
+            continue
+        # 不能直接比原始哈希: CP1/CP2 的包名与「常量模块导入」本就不同
+        # (CP2: from ..characters import <角色> as C; CP1: from . import config as C),
+        # 那是同步时自动改写的。先把 CP2 内容按 CP1 的规则归一化再比。
+        norm = normalize(read(pb), b["slug"], a["slug"], "CP1")
+        h_norm = hashlib.sha256(norm.encode("utf-8")).hexdigest()[:12]
+        same = (read(pa) == norm)
+        if not same:
+            drift += 1
+        print("  %-20s %-14s %-14s %s"
+              % (name, sha(pa), h_norm, "一致" if same else "★ 漂移"))
     print()
-    print("  两边哈希不同的文件: %d 个" % diff)
-    print("  说明: CP2 的引擎含若干改进(repo_root/pkg_root/find_css/find_mascots/"
-          "cover_bias),")
-    print("        这些是**有意**的差异, 不是漂移。以 CP2 为准, 不要反向覆盖。")
-    return diff
+    if drift == 0:
+        print("  没有漂移: CP1 与 CP2 的引擎逐字节等价(仅包名/导入按规则不同)。")
+    else:
+        print("  发现 %d 个文件漂移。修复: python tools/sync_engine.py --to CP1" % drift)
+    return drift
 
 
 def main():
@@ -186,7 +191,8 @@ def main():
     args = ap.parse_args()
 
     if args.check:
-        return 0 if check() >= 0 else 1
+        check()
+        return 0
     if not args.to:
         ap.error("请用 --to 指定目标套件, 或用 --check 只看差异")
     if args.to == args.src:
