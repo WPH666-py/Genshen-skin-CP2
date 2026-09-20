@@ -149,8 +149,21 @@ def main():
         log("      [%2d/%d] %s" % (i, len(files), rel))
 
     # 2) tree
+    # GitHub 的 Git Data API 是最终一致的: 刚创建的 blob 可能还没复制完成,
+    # 立刻建 tree 会偶发 422 "tree.sha ... is not a valid blob"。这里退避重试。
     log("[2/4] 创建 tree ...")
-    new_tree = gh.post("/repos/%s/git/trees" % args.repo, {"tree": tree})
+    new_tree = None
+    for attempt in range(6):
+        try:
+            new_tree = gh.post("/repos/%s/git/trees" % args.repo, {"tree": tree})
+            break
+        except RuntimeError as e:
+            if "not a valid blob" in str(e) and attempt < 5:
+                wait = 2 * (attempt + 1)
+                log("      blob 尚未就绪, %ds 后重试 (%d/5) ..." % (wait, attempt + 1))
+                time.sleep(wait)
+                continue
+            raise
     log("      tree = %s" % new_tree["sha"])
 
     # 3) commit(空仓库没有 parent)
