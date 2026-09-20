@@ -2,7 +2,7 @@
 """
 原神 CP 壁纸套件 2 —— 命令行
 
-本套件只有一张素材(奥黛塔 × 沃雅妮莎 · 相依), 但提供三种呈现方式:
+本套件有三张素材(奥黛塔 × 沃雅妮莎 的三套装扮), 每张三种摆法, 共 9 种壁纸:
 
   genshen-cp2                 # 默认: single1 卡片式(模糊背景 + 居中圆角卡片)
   genshen-cp2 cover           # 满屏: cover 裁切铺满整屏, 无边框
@@ -60,7 +60,7 @@ def _cmd_list(args):
     else:
         print("  用法: %s [card|cover|showall]  |  %s switcher  |  %s pet"
               % (C.APP_SLUG, C.APP_SLUG, C.APP_SLUG))
-        print("  说明: 只有一张素材, 以上三种是同一张图的三种呈现方式。")
+        print("  说明: 三张素材 x 三种摆法 = 9 种壁纸, 用序号选图、用 single/cover/showall 选摆法。")
     return 0
 
 
@@ -177,19 +177,44 @@ def build_parser():
     p.add_argument("--size", default=None)
     p.set_defaults(func=_cmd_all)
 
-    # 单张套件的三种呈现方式, 做成子命令(否则 argparse 会把 cover/showall
-    # 当成未知子命令直接报错, 位置参数根本轮不到)
-    p = sub.add_parser("cover", help="满屏: cover 裁切铺满整屏, 无边框")
-    add_common(p)
-    p.set_defaults(func=_cmd_apply, mode="cover1", cover=False)
+    # 每一种模式都注册成子命令。
+    # argparse 的子命令是"贪婪"的: 一旦注册了子解析器, `genshen-cp2 cover`
+    # 会被当成子命令名去匹配, 未知就直接报错。所以下面这些名字全都要显式注册:
+    #   * 规范编号名 singleN / coverN / showallN(无编号的 showall 归一成 showall1)
+    #   * 裸序号 1..N(等价 singleN)
+    #   * 摆法简写 cover / showall / card(作用第 1 张)
+    # 用一个注册器统一处理重名, 避免 argparse 抛 "conflicting subparser"。
+    _SUFFIX_HELP = {"single": "卡片式(模糊背景 + 居中卡片)",
+                    "cover": "满屏(cover 裁切铺满)",
+                    "showall": "完整(等比放进纯色底, 不裁切)"}
 
-    p = sub.add_parser("showall", help="完整: 等比放进纯色底, 一个像素都不裁")
-    add_common(p)
-    p.set_defaults(func=_cmd_apply, mode="showall", cover=False)
+    def _register(name, mode, help_text):
+        """注册子命令; 名字已存在就只更新它指向的模式。"""
+        if name in _seen:
+            _seen[name].set_defaults(func=_cmd_apply, mode=mode, cover=False)
+            return None
+        sp = sub.add_parser(name, help=help_text)
+        add_common(sp)
+        sp.set_defaults(func=_cmd_apply, mode=mode, cover=False)
+        _seen[name] = sp
+        return sp
 
-    p = sub.add_parser("card", help="卡片式: 模糊背景 + 居中圆角卡片(默认)")
-    add_common(p)
-    p.set_defaults(func=_cmd_apply, mode="single1", cover=False)
+    _seen = {}
+    for _mode in sc.all_modes():
+        _kind = "".join(c for c in _mode if not c.isdigit())
+        _num = "".join(c for c in _mode if c.isdigit()) or "1"
+        # 无编号的写法归一成编号形式, 让 mode_label() 一定命中 MODES
+        _canon = _mode if _mode[-1:].isdigit() else "%s%s" % (_kind, _num)
+        _register(_canon,
+                  _canon,
+                  "第 %s 张 · %s" % (_num, _SUFFIX_HELP.get(_kind, _kind)))
+
+    for _i in range(1, sc.count() + 1):
+        _register(str(_i), "single%d" % _i, "第 %d 张 · 卡片式" % _i)
+
+    _register("cover", "cover1", "第 1 张满屏")
+    _register("showall", "showall1", "第 1 张完整不裁")
+    _register("card", "single1", "第 1 张卡片式(默认)")
 
     p = sub.add_parser("random", help="随机换一张")
     add_common(p)
@@ -219,12 +244,12 @@ def build_parser():
     p.add_argument("--out", default=None, help="输出目录")
     p.set_defaults(func=_cmd_deepking)
 
-    # 位置参数: 仅用于不带子命令时的默认应用。
-    # 用 nargs="?" 且 choices 限定, 避免 argparse 把 "1"/"cover" 当成未知子命令
-    # 直接报错。子命令 cover/showall/card 已覆盖全部呈现方式。
-    ap.add_argument("mode", nargs="?", default=None, choices=sc.all_modes(),
-                    help="呈现方式(可省略, 默认 single1 卡片式)")
-    ap.add_argument("--cover", action="store_true", help="等价于 cover 子命令(满屏裁切)")
+    # 不再定义位置参数 mode。
+    # 之前留了一个 `nargs="?"` 的 mode, 结果 argparse 会用它的默认值(None)
+    # 覆盖掉子解析器 set_defaults 设的 mode, 于是 `genshen-cp2 cover2` 反而
+    # 走了默认的 single1。现在每一种模式都是独立子命令, 不需要位置参数。
+    ap.add_argument("--cover", action="store_true",
+                    help="等价于 cover 子命令(第 1 张满屏裁切)")
     ap.add_argument("--size", default=None, help="壁纸尺寸, 如 2560x1440")
     ap.add_argument("--no-set", action="store_true", help="只生成, 不设置为系统壁纸")
     return ap
@@ -235,18 +260,11 @@ def main(argv=None):
     ap = build_parser()
     args = ap.parse_args(argv)
 
-    # 子命令到呈现方式的映射。
-    # 注意: 不能用 sub.add_parser(...).set_defaults(mode=...) —— 父解析器的
-    # 位置参数 mode(默认 None)argparse 会覆盖子解析器设的同名默认值, 结果
-    # `genshen-cp2 cover` 反而走了默认的 single1。所以在解析之后显式改写。
-    SUBCOMMAND_MODE = {"cover": "cover1", "showall": "showall", "card": "single1"}
-
     if getattr(args, "func", None):
         sc.ensure_pillow()
         sc.ensure_dirs()
-        if args.cmd in SUBCOMMAND_MODE:
-            args.mode = SUBCOMMAND_MODE[args.cmd]
-            args.cover = False
+        # 每个模式的子命令都通过 set_defaults(mode=...) 自带正确模式名,
+        # 父解析器不再有同名位置参数, 所以不会被覆盖。
         try:
             return args.func(args)
         except KeyboardInterrupt:
@@ -255,9 +273,10 @@ def main(argv=None):
             print("[%s] 出错: %s" % (C.APP_SLUG, e), file=sys.stderr)
             return 1
 
-    # 无子命令: 直接应用壁纸
+    # 无子命令: 应用默认壁纸(若带了 --cover 则用第 1 张满屏)
     sc.ensure_pillow()
     sc.ensure_dirs()
+    args.mode = "cover1" if getattr(args, "cover", False) else sc.DEFAULT_MODE
     try:
         return _cmd_apply(args)
     except KeyboardInterrupt:

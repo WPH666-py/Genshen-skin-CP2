@@ -70,7 +70,7 @@ def ensure_pillow():
 def _repo_assets_dir():
     """素材目录候选(按优先级)。
 
-    CP2 的包是嵌套结构(src/genshen_skin_cp2/engine/), 素材放在 engine/assets/,
+    CP5 的包是嵌套结构(src/genshen_skin_cp2/engine/), 素材放在 engine/assets/,
     因此这里比 CP1 多一层候选:
       1. <包>/engine/assets/            —— 本仓库与 wheel 的实际位置
       2. <仓库根>/assets/               —— 允许把素材放仓库根统一管理
@@ -149,15 +149,15 @@ def count():
 # ---------------------------------------------------------------- 模式解析
 
 def _mode_index(modelike):
-    """'single1' / '1' / 1 -> 0(0-based 索引)。仅用于按张编号的 single/cover 系列。"""
+    """'single1' / 'cover2' / 'showall3' / '1' -> 0-based 张序号。"""
     if isinstance(modelike, int):
         i = modelike
     else:
         s = str(modelike).strip().lower()
-        if s in ("single", "cover"):
+        if s in ("single", "cover", "showall", "full"):
             i = 1
         elif s and s[-1].isdigit():
-            i = int(s.lstrip("singlecoverx-"))
+            i = int(s.lstrip("singlecovershowallfullx-"))
         else:
             i = 1
     if not (1 <= i <= count()):
@@ -166,20 +166,28 @@ def _mode_index(modelike):
 
 
 def resolve_mode(mode):
-    """把用户输入归一化为合法模式名。"""
+    """把用户输入归一化为合法模式名。
+
+    会把无编号的写法补成第 1 张: cover -> cover1, showall -> showall1,
+    card/single -> single1。这样后面的 compose() 只需处理带编号的名字。
+    """
     if mode is None:
         return DEFAULT_MODE
     s = str(mode).strip().lower()
     if s in ("", "default", "random"):
         return DEFAULT_MODE if s != "random" else "random"
+    s = {"card": "single"}.get(s, s)
     if s.isdigit():
         return "single" + s
     # 非按张编号的模式(如 showall)直接匹配
     if s in [m[0] for m in MODES]:
-        return s
-    if s.startswith("single") or s.startswith("cover"):
+        # MODES 里可能存在无编号的写法(单张套件), 统一补成第 1 张
+        return s if (s and s[-1].isdigit()) else s + "1"
+    # 按张编号的三种摆法: single1 / cover2 / showall3(以及 fullN 别名)
+    if s.startswith(("single", "cover", "showall", "full")):
+        s = "showall" + s[4:] if s.startswith("full") else s
         _mode_index(s)  # 校验范围
-        return s
+        return s if s[-1].isdigit() else s + "1"
     if s.startswith("img"):
         s = "single" + s[3:]
         _mode_index(s)
@@ -189,9 +197,20 @@ def resolve_mode(mode):
 
 
 def mode_label(mode):
+    """模式的显示名。找不到时退一步: 去掉末尾编号再找一次。
+
+    单张套件的 MODES 里写的是无编号的 `showall`, 而 resolve_mode 会把它
+    归一成 `showall1`, 直接查表就落空、界面会显示生涩的 "showall1"。
+    这里先精确匹配, 再去编号匹配, 最后才原样返回。
+    """
     for key, label in MODES:
         if key == mode:
             return label
+    stripped = mode.rstrip("0123456789")
+    if stripped != mode:
+        for key, label in MODES:
+            if key == stripped:
+                return label
     return mode
 
 
@@ -384,8 +403,10 @@ def compose(mode, size=None):
     if size is None:
         size = screen_size()
     size = tuple(size)
-    if mode == "showall":
-        return compose_showall(1, size)
+    # 三种摆法都按张编号: singleN / coverN / showallN
+    # (单张套件里 "showall" 也走这里, _mode_index 会把无编号的当第 1 张)
+    if mode.startswith("showall"):
+        return compose_showall(_mode_index(mode) + 1, size)
     if mode.startswith("cover"):
         return compose_cover(_mode_index(mode) + 1, size)
     if mode.startswith("single"):

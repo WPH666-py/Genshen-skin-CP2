@@ -24,7 +24,7 @@ import json
 import os
 import re
 
-from . import _color as col
+from ..engine import _color as col
 from ..characters import odette_voj as C
 
 SKIN_VERSION = "0.1.0"
@@ -605,7 +605,7 @@ def preview_html(skin, embed_images=True):
                 %(mascot)s
                 <div class="bubble user" style="background:%(userBubbleBg)s;color:%(userBubbleText)s">换成满屏那张</div>
                 <div class="bubble ai" style="background:%(aiBubbleBg)s;color:%(aiBubbleText)s;border-color:%(aiBubbleBorder)s">
-                  已切换到「相依 · 满屏」(cover1)。
+                  已切换到「林间 · 满屏」(cover1)。
                 </div>
                 <div class="bubble" style="background:%(systemBubbleBg)s;color:%(systemBubbleText)s">
                   系统提示气泡样式
