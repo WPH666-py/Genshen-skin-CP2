@@ -76,10 +76,14 @@ genshen-cp2 deepking --what     # 看转换器实际会取到什么值
 ## 吉祥物图片
 
 转换器按 `assets/background/` → 文件名含 `maid|whale|poster|mascot` →
-任意 `assets/` 下图片的顺序挑图。本仓库提供两张：
+任意 `assets/` 下图片的顺序挑图。本仓库提供两张（**同一张素材的两段取景**，
+因为本套件只有一张插画）：
 
-- `mascot-cp1-light.jpg` —— 「比心」，蓝色波点底，配亮色界面
-- `mascot-cp1-dark.jpg` —— 「共舞」，夜空底，配暗色界面
+- `mascot-cp2-light.jpg` —— 取上段（双人脸与浅蓝礼服），配亮色界面
+- `mascot-cp2-dark.jpg` —— 取中段（星裙钴蓝主体），配暗色界面
+
+两张都由 `01-odette.jpg` 生成。重做方式：调整 `crop` 的中心比例与取景边长，
+重新导出 900×900 即可（见仓库 README 的「素材」一节）。
 
 注意：**在线转换只会用其中一张**（转换器对亮暗都用同一张 URL），
 两张分别生效只在手工校色版的 `mascot.light` / `mascot.dark` 里。

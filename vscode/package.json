@@ -28,16 +28,16 @@
         "title": "原神CP2: 打开皮肤画廊"
       },
       {
-        "command": "genshencp2.set1",
-        "title": "原神CP2: 第1张 · 比心"
+        "command": "genshencp2.setCard",
+        "title": "原神CP2: 卡片式(模糊背景 + 居中卡片)"
       },
       {
-        "command": "genshencp2.set2",
-        "title": "原神CP2: 第2张 · 共舞"
+        "command": "genshencp2.setCover",
+        "title": "原神CP2: 满屏(cover 铺满整屏)"
       },
       {
-        "command": "genshencp2.set3",
-        "title": "原神CP2: 第3张 · 道歉"
+        "command": "genshencp2.setShowall",
+        "title": "原神CP2: 完整(不裁切, 两侧留边)"
       },
       {
         "command": "genshencp2.setRandom",

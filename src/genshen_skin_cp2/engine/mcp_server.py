@@ -40,12 +40,13 @@ TOOLS = [
         "name": "set_wallpaper",
         "description": (
             "把指定样式合成为当前屏幕分辨率并设为系统桌面壁纸。"
-            "id 取值见 list_wallpapers, 例如 single1 / single2 / cover1, 也可用序号 1-3。"
+            "id 取值见 list_wallpapers: single1(卡片式) / cover1(满屏) / showall(完整不裁)。"
         ),
         "inputSchema": {
             "type": "object",
             "properties": {
-                "id": {"type": "string", "description": "样式 id 或序号, 如 single2 或 2"},
+                "id": {"type": "string",
+                       "description": "样式 id: single1 / cover1 / showall"},
                 "size": {"type": "string", "description": "可选, 如 2560x1440, 默认取屏幕分辨率"},
                 "set_desktop": {
                     "type": "boolean",
@@ -104,7 +105,10 @@ def tool_list_wallpapers(_args):
     lines = ["%s  v%s" % (C.DISPLAY_NAME, C.VERSION), ""]
     for key, label in sc.MODES:
         lines.append("  %-9s %s" % (key, label))
-    lines += ["", "提示: 也可用序号 1-%d 指定 single 样式。" % sc.count()]
+    if sc.count() > 1:
+        lines += ["", "提示: 也可用序号 1-%d 指定 single 样式。" % sc.count()]
+    else:
+        lines += ["", "本套件只有一张素材, 上列三种是同一张图的三种呈现方式。"]
     return _ok_text("\n".join(lines))
 
 

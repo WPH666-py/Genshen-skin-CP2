@@ -11,9 +11,9 @@ JetBrains 的背景图是官方 UI 功能, 脚本负责生成高清素材, 之�
    genshen-cp2 all --out ~/GenshinCP1-Backgrounds                 # macOS / Linux
    ```
 
-   源码形态: `python -m genshen_skin_cp2.cli all --out 目录`
+   源码形态: `python -m genshen_skin_cp2.engine.cli all --out 目录`
 
-   输出 6 张: `single1..3-*.jpg`(模糊背景 + 居中卡片) + `cover1..3-*.jpg`(满屏裁切)
+   输出 3 张(同一张素材的三种呈现方式): `single1-*.jpg`(卡片) / `cover1-*.jpg`(满屏) / `showall-*.jpg`(完整不裁)
 
 2. 打开 IDE:
    **Settings / Preferences → Appearance & Behavior → Appearance → Background Image**
@@ -21,7 +21,7 @@ JetBrains 的背景图是官方 UI 功能, 脚本负责生成高清素材, 之�
 3. 点 `+` 添加图片 → 选择刚生成的任意一张。
 
    - **编辑器区推荐 `single1-*.jpg`**: 卡片居中、四周留白, 代码可读性最好
-   - **欢迎页 / 工具窗口推荐 `cover2-*.jpg`**: 满屏插画, 视觉冲击强
+   - **欢迎页 / 工具窗口推荐 `cover1-*.jpg`**: 满屏插画, 视觉冲击强
    - 想让代码更清晰: 把下方的 **Opacity** 调到 10%~20%
 
 4. 可对 **Editor / Welcome screen / Menus and tool windows** 分别设置不同图片。

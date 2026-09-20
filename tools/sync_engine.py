@@ -81,12 +81,12 @@ def sha(path):
 def normalize(text, src_slug, dst_slug, dst_key=None):
     """把源套件的包名/命令名换成目标套件的, 使文件内容可直接落盘。
 
-    还要改写「常量模块」的导入:
-      CP2 的角色数据在 characters/<角色>.py, 引擎用
-          from ..characters import odette_voj as C
-      导入; CP1 没有 characters 包, 常量就在 config.py, 用
-          from . import config as C
-      两者暴露的常量名一致, 所以换掉这一行即可。
+    还要改写「常量模块」的导入, 两个套件的结构不同:
+      CP2: 角色数据在 characters/<角色>.py, 引擎用
+               from ..characters import odette_voj as C
+      CP1: 没有 characters 包, 常量就在 config.py, 引擎用
+               from . import config as C
+    两者暴露的常量名一致, 所以换掉这一行即可。dst_key 决定往哪个方向改写。
     """
     src_short = src_slug.replace("genshin_", "").replace("genshen_", "")   # skin_cp1
     dst_short = dst_slug.replace("genshin_", "").replace("genshen_", "")
@@ -100,13 +100,21 @@ def normalize(text, src_slug, dst_slug, dst_key=None):
         out = out.replace(a, b)
 
     if dst_key == "CP1":
-        # CP1 是扁平包: characters/<角色>.py -> config.py
+        # CP2 形态 -> CP1 形态: characters/<角色>.py 换成 config.py
         out = out.replace("from ..characters import odette_voj as C",
                           "from . import config as C")
         out = out.replace("from ..characters.odette_voj import (",
                           "from .config import (")
         out = out.replace("from ..engine import _color as col",
                           "from . import _color as col")
+    elif dst_key == "CP2":
+        # CP1 形态 -> CP2 形态: config.py 换成 characters/<角色>.py
+        out = out.replace("from . import config as C",
+                          "from ..characters import odette_voj as C")
+        out = out.replace("from .config import (",
+                          "from ..characters.odette_voj import (")
+        out = out.replace("from . import _color as col",
+                          "from ..engine import _color as col")
     return out
 
 

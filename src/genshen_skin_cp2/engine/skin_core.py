@@ -149,7 +149,7 @@ def count():
 # ---------------------------------------------------------------- 模式解析
 
 def _mode_index(modelike):
-    """'single2' / '2' / 2 -> 1(0-based 索引)。"""
+    """'single1' / '1' / 1 -> 0(0-based 索引)。仅用于按张编号的 single/cover 系列。"""
     if isinstance(modelike, int):
         i = modelike
     else:
@@ -174,6 +174,9 @@ def resolve_mode(mode):
         return DEFAULT_MODE if s != "random" else "random"
     if s.isdigit():
         return "single" + s
+    # 非按张编号的模式(如 showall)直接匹配
+    if s in [m[0] for m in MODES]:
+        return s
     if s.startswith("single") or s.startswith("cover"):
         _mode_index(s)  # 校验范围
         return s
@@ -347,12 +350,42 @@ def compose_cover(idx, size=None):
     return img.crop((x, y, x + W, y + H))
 
 
+def compose_showall(idx, size=None):
+    """完整样式: 等比缩放整幅放进画面, 四周用同色系纯色补齐。
+
+    一个像素都不裁 —— 适合「宁可两边留边, 也不能切掉人物」的场合。
+    底色取素材四角的中位色, 因此白底插画得到白边、夜空插画得到深边。
+    """
+    ensure_pillow()
+    from PIL import Image
+
+    if size is None:
+        size = screen_size()
+    W, H = size
+    src = Image.open(asset_path(idx)).convert("RGB")
+
+    # 底色: 采样四角, 取通道中位数, 避免被单个角落的异色带偏
+    w, h = src.size
+    corners = [src.getpixel(p) for p in (
+        (1, 1), (w - 2, 1), (1, h - 2), (w - 2, h - 2))]
+    base = tuple(sorted(c[i] for c in corners)[len(corners) // 2] for i in range(3))
+
+    scale = min(W / src.width, H / src.height)
+    nw, nh = max(1, int(round(src.width * scale))), max(1, int(round(src.height * scale)))
+    tile = src.resize((nw, nh), Image.LANCZOS)
+    canvas = Image.new("RGB", (W, H), base)
+    canvas.paste(tile, ((W - nw) // 2, (H - nh) // 2))
+    return canvas
+
+
 def compose(mode, size=None):
     """按模式名合成壁纸, 返回 PIL.Image。"""
     mode = resolve_mode(mode)
     if size is None:
         size = screen_size()
     size = tuple(size)
+    if mode == "showall":
+        return compose_showall(1, size)
     if mode.startswith("cover"):
         return compose_cover(_mode_index(mode) + 1, size)
     if mode.startswith("single"):

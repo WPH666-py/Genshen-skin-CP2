@@ -41,19 +41,22 @@ def make_thumbs():
         made.append(out)
         print("  OK  %-9s -> %s" % (mode, os.path.basename(out)))
 
-    # 拼版总览图
-    cols, rows = 3, 2
+    # 拼版总览图: 按实际样式数量排成一行(本套件 3 个), 不留空行
+    modes_n = len(modes)
+    cols = modes_n if modes_n <= 3 else 3
+    rows = (modes_n + cols - 1) // cols
     tw, th = THUMB
     gap = 12
     sheet = Image.new("RGB", (cols * tw + (cols + 1) * gap,
                               rows * th + (rows + 1) * gap), (14, 20, 38))
-    for i, mode in enumerate(modes[:cols * rows]):
+    for i, mode in enumerate(modes):
         r, c = divmod(i, cols)
         sheet.paste(sc.compose(mode, THUMB),
                     (gap + c * (tw + gap), gap + r * (th + gap)))
     sheet_out = os.path.join(MEDIA, "thumb-grid.png")
     sheet.save(sheet_out, optimize=True)
-    print("  OK  grid      -> %s" % os.path.basename(sheet_out))
+    print("  OK  grid      -> %s (%dx%d, %d 格)"
+          % (os.path.basename(sheet_out), sheet.width, sheet.height, modes_n))
     return made
 
 

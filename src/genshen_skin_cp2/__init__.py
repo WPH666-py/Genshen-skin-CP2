@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 """
 原神 CP 壁纸套件 2 —— 奥黛塔 × 沃雅妮莎
-单张样式一键切换壁纸 / 桌面桌宠 / 多 IDE 皮肤 / DeepKing 界面皮肤
+单张素材壁纸(三种呈现方式) / 桌面桌宠 / 多 IDE 皮肤 / DeepKing 界面皮肤
 
     import genshen_skin_cp2 as gs
-    gs.build("single2")          # 合成第 2 张壁纸, 返回文件路径
+    gs.build("single1")          # 卡片式(默认), 返回文件路径
+    gs.build("cover1")           # 满屏
+    gs.build("showall")          # 完整不裁
     gs.set_wallpaper(path)       # 设为系统壁纸
 
-本包与 CP1(Genshen-skin-CP2 · 米提亚×沃雅妮莎)并列, 命名空间完全隔离:
+本包与 CP1(Genshen-Skin-CP1 · 米提亚×沃雅妮莎)并列, 命名空间完全隔离:
 包名 genshen-skin-cp2 / 命令 genshen-cp2 / 运行时目录 ~/.genshen-cp2,
 两个套件可同时安装、各自切换。
 """

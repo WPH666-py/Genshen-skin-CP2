@@ -27,8 +27,8 @@ function pickPython() {
 
 function main() {
   fs.mkdirSync(media, { recursive: true });
-  const need = ['icon.png', 'thumb-single1.png', 'thumb-single2.png', 'thumb-single3.png',
-    'thumb-cover1.png', 'thumb-cover2.png', 'thumb-cover3.png'];
+  // 本套件单张素材, 三种呈现方式 -> 三张缩略图
+  const need = ['icon.png', 'thumb-single1.png', 'thumb-cover1.png', 'thumb-showall.png'];
   if (need.every((f) => ok(path.join(media, f)))) {
     console.log('[prepack] media/ 已完整, 跳过生成');
     return;

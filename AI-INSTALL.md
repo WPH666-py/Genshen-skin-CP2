@@ -6,16 +6,21 @@
 
 ## 这套东西是什么
 
-**原神 CP 壁纸套件 2 · 奥黛塔 × 沃雅妮莎** —— 单张样式壁纸包:
+**原神 CP 壁纸套件 2 · 奥黛塔 × 沃雅妮莎** —— **单张素材**壁纸包。
 
-| 样式 id | 名称 | 说明 |
+只有一张插画(「相依」: 白发紫瞳的奥黛塔与深蓝长发的沃雅妮莎相偎), 但提供**三种呈现方式**,
+用户随时切换:
+
+| 模式 id | 名称 | 说明 |
 |---|---|---|
-| `single1` | 相依 | 模糊背景 + 居中圆角卡片(**默认**, 竖图不裁切) |
-| `single2` | 星轨 | 同上 |
-| `single3` | 比心 | 同上 |
-| `cover1`..`cover3` | 满屏版 | 按 cover 铺满整屏, 无边框 |
+| `single1` | 卡片式 | **默认**。模糊填充背景 + 居中圆角卡片, 构图完整不裁切 |
+| `cover1` | 满屏 | cover 铺满整屏, 无边框; 取景窗自动上移保住两人的脸 |
+| `showall` | 完整 | 等比放进同色纯色底, **一个像素都不裁**, 两侧留边 |
 
-素材 3 张已打进发行包, **离线可用**。跨平台 Windows / macOS / Linux。
+素材已打进发行包, **离线可用**。跨平台 Windows / macOS / Linux。
+
+> 用户如果说「换张别的」—— 本套件只有这一张素材, 请告诉他可以切换**呈现方式**
+> (`genshen-cp2 cover` / `genshen-cp2 showall`), 而不是去找不存在的第二张图。
 
 ## 第 0 步: 选安装形态(优先 A)
 
@@ -60,15 +65,16 @@ genshen-cp2-install
 
 ## 第 3 步: 按用户环境补做
 
-### A. 只想换壁纸(用户在聊天里说"换一张")
+### A. 换壁纸 / 换呈现方式(用户在聊天里说"换一张")
 
 ```bash
-genshen-cp2 2          # 第 2 张 星轨
-genshen-cp2 3          # 第 3 张 比心
-genshen-cp2 1          # 第 1 张 相依
-genshen-cp2 cover1     # 第 1 张满屏版
-genshen-cp2 random     # 随机一张
-genshen-cp2 list       # 列出所有样式
+genshen-cp2            # 卡片式(默认)
+genshen-cp2 cover      # 满屏, 无边框
+genshen-cp2 showall    # 完整不裁, 两侧留边
+genshen-cp2 card       # 显式指定卡片式
+genshen-cp2 random     # 随机一种呈现方式
+genshen-cp2 list       # 列出全部模式
+genshen-cp2 all        # 一次生成三种到 ~/.genshen-cp2/wallpapers
 ```
 
 ### B. VSCode / Trae / CodeX / Cursor / Windsurf
@@ -83,8 +89,8 @@ genshen-cp2-install --only vscode
 无网时: 把 `vscode/` 整个目录复制到
 `%USERPROFILE%\.vscode\extensions\wp666.genshen-skin-cp2-0.1.0\`, 然后重启编辑器。
 
-装完提示用户: 活动栏 **原神CP2** 图标 → 皮肤画廊 → 点「设为壁纸」。
-命令面板搜 `原神CP2` 也能换壁纸 / 开切换器 / 开桌宠。
+装完提示用户: 活动栏 **原神CP2** 图标 → 皮肤画廊 → 三张卡片分别对应三种呈现方式,
+点「设为壁纸」即可。命令面板搜 `原神CP2` 也能换 / 开切换器 / 开桌宠。
 
 ### C. PyCharm / WebStorm / IntelliJ
 
@@ -92,8 +98,10 @@ genshen-cp2-install --only vscode
 genshen-cp2 all --out "$HOME/GenshenCP2-Backgrounds"
 ```
 
-再引导用户: Settings → Appearance & Behavior → Appearance → **Background Image**
-→ 点 `+` 选图片(推荐 `single1-*.jpg`)。细节见 [ide/jetbrains/README.md](ide/jetbrains/README.md)。
+生成 3 张(卡片式 / 满屏 / 完整)。再引导用户:
+Settings → Appearance & Behavior → Appearance → **Background Image**
+→ 点 `+` 选图片(编辑器区推荐 `single1-*.jpg`, 留白多、代码可读性好)。
+细节见 [ide/jetbrains/README.md](ide/jetbrains/README.md)。
 
 ### D. DeepKing 界面皮肤(深度适配)
 
@@ -120,7 +128,7 @@ genshen-cp2 deepking --what    # 显示 DeepKing 会从仓库里提取到什么
 |---|---|
 | `skin.json` | DeepKing 读取 `name` / `accent` / `tagline`; `accent` 必须是 `#` 十六进制 |
 | `src/client/genshen-cp2.module.css` | 配色变量 `--名: #hex`; 变量名需含 `bg-base`、`label-primary`、`brand-primary`、`border-l2` 等关键词 |
-| `assets/background/mascot-cp2-light.jpg` / `-dark.jpg` | 编辑区右下角吉祥物(转换器只认 `assets/background/` 这个路径) |
+| `assets/background/mascot-cp2-light.jpg` / `-dark.jpg` | 编辑区右下角水印, 由同一张素材的两段取景生成 |
 
 **两个容易踩的坑**(`--check` 会报出来):
 
@@ -157,9 +165,9 @@ MCP 暴露 5 个工具: `list_wallpapers` / `set_wallpaper` / `next_wallpaper` /
 ### F. 桌面桌宠 / 可视化切换器(需要图形桌面)
 
 ```bash
-genshen-cp2 switcher    # 可视化切换器: 左侧预览, 右侧一键应用
-genshen-cp2 pet         # 桌面桌宠: 左键拖动, 右键换立绘/退出, Esc 退出
-genshen-cp2 cycle 30    # 每 30 分钟自动随机换壁纸
+genshen-cp2 switcher    # 可视化切换器: 左侧预览三种呈现方式, 右侧一键应用
+genshen-cp2 pet         # 桌面桌宠: 左键拖动, 右键菜单, Esc 退出
+genshen-cp2 cycle 30    # 每 30 分钟自动随机换
 ```
 
 **注意**: 这三条需要本地图形会话。若你在远程/无桌面环境执行失败, 告诉用户在自己电脑上运行,
@@ -181,7 +189,8 @@ genshen-cp2 cycle 30    # 每 30 分钟自动随机换壁纸
 ## 一键复述(可直接念给用户)
 
 > 已为你装好「原神 CP 壁纸套件2 · 奥黛塔 × 沃雅妮莎」。
-> 换壁纸: `genshen-cp2 2` 或 `genshen-cp2 random`;
+> 这张图有三种摆法: `genshen-cp2`(卡片式)、`genshen-cp2 cover`(满屏)、
+> `genshen-cp2 showall`(完整不裁);
 > 可视化切换器: `genshen-cp2 switcher`; 桌宠: `genshen-cp2 pet`;
 > DeepKing 皮肤: 设置 → 界面皮肤 → 粘贴 `https://github.com/WPH666-py/Genshen-skin-CP2`;
 > VSCode 活动栏的「原神CP2」图标里也能一键换。

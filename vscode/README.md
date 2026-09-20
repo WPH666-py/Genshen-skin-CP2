@@ -1,4 +1,4 @@
-# 原神CP2 — 米提亚×沃雅妮莎 · VSCode / Trae / CodeX 扩展
+# 原神CP2 — 奥黛塔×沃雅妮莎 · VSCode / Trae / CodeX 扩展
 
 单张样式壁纸一键切换 · 桌面桌宠 · 多 IDE 皮肤。
 

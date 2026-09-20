@@ -603,9 +603,9 @@ def preview_html(skin, embed_images=True):
               </div>
               <div class="editor">
                 %(mascot)s
-                <div class="bubble user" style="background:%(userBubbleBg)s;color:%(userBubbleText)s">换一张壁纸</div>
+                <div class="bubble user" style="background:%(userBubbleBg)s;color:%(userBubbleText)s">换成满屏那张</div>
                 <div class="bubble ai" style="background:%(aiBubbleBg)s;color:%(aiBubbleText)s;border-color:%(aiBubbleBorder)s">
-                  已切换到「共舞」(single2)。
+                  已切换到「相依 · 满屏」(cover1)。
                 </div>
                 <div class="bubble" style="background:%(systemBubbleBg)s;color:%(systemBubbleText)s">
                   系统提示气泡样式

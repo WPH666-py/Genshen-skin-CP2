@@ -1,4 +1,4 @@
-// 原神 CP 壁纸套件1 — 奥黛塔 × 沃雅妮莎 (VSCode / Trae / CodeX / Cursor / Windsurf)
+// 原神 CP 壁纸套件2 — 奥黛塔 × 沃雅妮莎 · 单张素材三种呈现 (VSCode / Trae / CodeX / Cursor / Windsurf)
 const vscode = require('vscode');
 const { spawn, spawnSync } = require('child_process');
 const os = require('os');
@@ -76,7 +76,7 @@ function findRepo() {
   ].filter(Boolean);
   for (const c of cands) {
     try {
-      if (fs.existsSync(path.join(c, 'src', 'genshen_skin_cp2', 'engine', 'cli.py'))) return c;
+      if (fs.existsSync(path.join(c, 'src', 'genshen_skin_cp2', 'cli.py'))) return c;
       if (fs.existsSync(path.join(c, 'tools', 'wallpaper.py'))) return c;
     } catch (e) { /* 忽略 */ }
   }
@@ -94,10 +94,10 @@ function buildInvocation(sub) {
   if (repo) {
     env.PYTHONPATH = (env.PYTHONPATH ? env.PYTHONPATH + path.delimiter : '') +
       path.join(repo, 'src');
-    return { py: py, args: ['-m', 'genshen_skin_cp2.engine.cli'].concat(sub), cwd: repo, env: env };
+    return { py: py, args: ['-m', 'genshen_skin_cp2.cli'].concat(sub), cwd: repo, env: env };
   }
   // pip 安装形态: 直接用模块
-  return { py: py, args: ['-m', 'genshen_skin_cp2.engine.cli'].concat(sub), cwd: os.homedir(), env: env };
+  return { py: py, args: ['-m', 'genshen_skin_cp2.cli'].concat(sub), cwd: os.homedir(), env: env };
 }
 
 function envError(msg) {
@@ -138,7 +138,7 @@ function spawnGui(moduleName, label) {
     const w = path.join(path.dirname(exe), 'pythonw.exe');
     if (fileOk(w)) exe = w;
   }
-  const child = spawn(exe, ['-m', 'genshen_skin_cp2.engine.' + moduleName], {
+  const child = spawn(exe, ['-m', 'genshen_skin_cp2.' + moduleName], {
     cwd: inv.cwd,
     env: inv.env,
     detached: true,
@@ -151,15 +151,12 @@ function spawnGui(moduleName, label) {
 
 // ---------------------------------------------------------------- 画廊视图
 
-// 画廊卡片: 与 characters/odette_voj.py 的 MODES / IMAGE_NAMES 一一对应。
-// 改角色包时请同步这里, 缩略图由 vscode/gen_media.py 按同一份清单生成。
+// 本套件只有一张素材(奥黛塔 × 沃雅妮莎 · 相依), 因此画廊给的是同一张的
+// 三种呈现方式。ids 必须与 characters/odette_voj.py 的 MODES 一致。
 const CARDS = [
-  { mode: 'single1', t: '第1张 · 相依', img: 'thumb-single1.png', d: '模糊背景 + 居中卡片' },
-  { mode: 'single2', t: '第2张 · 星轨', img: 'thumb-single2.png', d: '模糊背景 + 居中卡片' },
-  { mode: 'single3', t: '第3张 · 比心', img: 'thumb-single3.png', d: '模糊背景 + 居中卡片' },
-  { mode: 'cover1', t: '相依 · 满屏', img: 'thumb-cover1.png', d: '自动避开人物头部' },
-  { mode: 'cover2', t: '星轨 · 满屏', img: 'thumb-cover2.png', d: 'cover 裁切铺满' },
-  { mode: 'cover3', t: '比心 · 满屏', img: 'thumb-cover3.png', d: 'cover 裁切铺满' }
+  { mode: 'single1', t: '卡片式', img: 'thumb-single1.png', d: '模糊背景 + 居中圆角卡片, 构图完整' },
+  { mode: 'cover1', t: '满屏', img: 'thumb-cover1.png', d: 'cover 铺满整屏, 取景自动保住人物' },
+  { mode: 'showall', t: '完整', img: 'thumb-showall.png', d: '等比放进纯色底, 一个像素都不裁' }
 ];
 
 class GalleryProvider {
@@ -216,7 +213,7 @@ function renderHtml(thumb, hasPython) {
     '<button class="alt" data-cmd="switcher">🖼️ 壁纸切换器</button>' +
     '<button class="alt" data-cmd="pet">💙 桌面桌宠</button>' +
     '</div>' +
-    '<div class="foot">原神 CP 壁纸套件1 · 奥黛塔 × 沃雅妮莎 v0.1.0<br/>' +
+    '<div class="foot">原神 CP 壁纸套件2 · 奥黛塔 × 沃雅妮莎 v0.1.0<br/>' +
     '给任意 AI 发仓库链接即可自动安装</div>' +
     '<script>const vscode=acquireVsCodeApi();' +
     'document.querySelectorAll("button[data-mode]").forEach(function(b){' +
@@ -232,9 +229,9 @@ function activate(ctx) {
   const reg = (cmd, fn) =>
     ctx.subscriptions.push(vscode.commands.registerCommand(cmd, fn));
 
-  reg('genshencp2.set1', () => runCli(['1'], '已切换: 比心'));
-  reg('genshencp2.set2', () => runCli(['2'], '已切换: 共舞'));
-  reg('genshencp2.set3', () => runCli(['3'], '已切换: 道歉'));
+  reg('genshencp2.setCard', () => runCli(['card'], '已切换: 卡片式'));
+  reg('genshencp2.setCover', () => runCli(['cover'], '已切换: 满屏'));
+  reg('genshencp2.setShowall', () => runCli(['showall'], '已切换: 完整不裁'));
   reg('genshencp2.setRandom', () => runCli(['random'], '已随机换一张!'));
   reg('genshencp2.generateAll', () => runCli(['all'], '已生成全部样式!'));
   reg('genshencp2.openSwitcher', () => spawnGui('switcher', '壁纸切换器'));

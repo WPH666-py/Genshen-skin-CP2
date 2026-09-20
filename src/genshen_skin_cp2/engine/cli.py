@@ -2,9 +2,12 @@
 """
 原神 CP 壁纸套件 2 —— 命令行
 
-  genshen-cp2                 # 直接应用默认壁纸(第 1 张 比心)
-  genshen-cp2 2               # 应用第 2 张 共舞
-  genshen-cp2 3 --cover       # 第 3 张按 cover 满屏裁切
+本套件只有一张素材(奥黛塔 × 沃雅妮莎 · 相依), 但提供三种呈现方式:
+
+  genshen-cp2                 # 默认: single1 卡片式(模糊背景 + 居中圆角卡片)
+  genshen-cp2 cover           # 满屏: cover 裁切铺满整屏, 无边框
+  genshen-cp2 showall         # 完整: 等比放进纯色底, 一个像素都不裁
+  genshen-cp2 1               # 等价于 single1(兼容按张编号的写法)
   genshen-cp2 list            # 列出所有可切换样式
   genshen-cp2 random          # 随机来一张
   genshen-cp2 all             # 生成全部样式到 ~/.genshen-cp2/wallpapers
@@ -12,6 +15,7 @@
   genshen-cp2 cycle 30        # 每 30 分钟自动随机换壁纸
   genshen-cp2 switcher        # 打开可视化切换器
   genshen-cp2 pet             # 启动桌面桌宠
+  genshen-cp2 deepking        # 生成 DeepKing 界面皮肤 + 离线预览
   genshen-cp2 copy            # 只合成不设置
   genshen-cp2 info            # 环境与素材自检
 """
@@ -25,9 +29,14 @@ from . import skin_core as sc
 
 
 def _cmd_apply(args):
-    mode = sc.resolve_mode(args.mode)
-    if args.cover:
-        mode = "cover" + mode.lstrip("single")
+    # 位置参数可以是模式名(cover / showall / single1), 也可以是按张编号(1)
+    raw = args.mode
+    if raw is not None and str(raw).strip().lower() == "cover":
+        # 单张套件: `cover` 直接指满屏那张, 而不是「第几张」
+        raw = "cover1"
+    mode = sc.resolve_mode(raw)
+    if getattr(args, "cover", False) and mode.startswith("single"):
+        mode = "cover1"
     size = sc.parse_size(args.size) if args.size else None
     out = sc.build(mode, size, force=True)
     print("[%s] 已生成: %s  (%s)" % (C.APP_SLUG, out, sc.mode_label(mode)))
@@ -45,8 +54,13 @@ def _cmd_list(args):
         mark = " *默认" if key == sc.DEFAULT_MODE else ""
         print("  %-9s %s%s" % (key, label, mark))
     print("-" * 58)
-    print("  用法: %s <模式名或数字>  |  %s random  |  %s switcher"
-          % (C.APP_SLUG, C.APP_SLUG, C.APP_SLUG))
+    if sc.count() > 1:
+        print("  用法: %s <模式名或序号>  |  %s random  |  %s switcher"
+              % (C.APP_SLUG, C.APP_SLUG, C.APP_SLUG))
+    else:
+        print("  用法: %s [card|cover|showall]  |  %s switcher  |  %s pet"
+              % (C.APP_SLUG, C.APP_SLUG, C.APP_SLUG))
+        print("  说明: 只有一张素材, 以上三种是同一张图的三种呈现方式。")
     return 0
 
 
@@ -163,6 +177,20 @@ def build_parser():
     p.add_argument("--size", default=None)
     p.set_defaults(func=_cmd_all)
 
+    # 单张套件的三种呈现方式, 做成子命令(否则 argparse 会把 cover/showall
+    # 当成未知子命令直接报错, 位置参数根本轮不到)
+    p = sub.add_parser("cover", help="满屏: cover 裁切铺满整屏, 无边框")
+    add_common(p)
+    p.set_defaults(func=_cmd_apply, mode="cover1", cover=False)
+
+    p = sub.add_parser("showall", help="完整: 等比放进纯色底, 一个像素都不裁")
+    add_common(p)
+    p.set_defaults(func=_cmd_apply, mode="showall", cover=False)
+
+    p = sub.add_parser("card", help="卡片式: 模糊背景 + 居中圆角卡片(默认)")
+    add_common(p)
+    p.set_defaults(func=_cmd_apply, mode="single1", cover=False)
+
     p = sub.add_parser("random", help="随机换一张")
     add_common(p)
     p.set_defaults(func=_cmd_random)
@@ -191,9 +219,12 @@ def build_parser():
     p.add_argument("--out", default=None, help="输出目录")
     p.set_defaults(func=_cmd_deepking)
 
-    # 位置参数兼容: genshen-cp2 2 / genshen-cp2 single2
-    ap.add_argument("mode", nargs="?", default=None, help="样式名或序号: 1 2 3 / single1 / cover1")
-    ap.add_argument("--cover", action="store_true", help="按 cover 满屏裁切(默认模糊填充+居中卡片)")
+    # 位置参数: 仅用于不带子命令时的默认应用。
+    # 用 nargs="?" 且 choices 限定, 避免 argparse 把 "1"/"cover" 当成未知子命令
+    # 直接报错。子命令 cover/showall/card 已覆盖全部呈现方式。
+    ap.add_argument("mode", nargs="?", default=None, choices=sc.all_modes(),
+                    help="呈现方式(可省略, 默认 single1 卡片式)")
+    ap.add_argument("--cover", action="store_true", help="等价于 cover 子命令(满屏裁切)")
     ap.add_argument("--size", default=None, help="壁纸尺寸, 如 2560x1440")
     ap.add_argument("--no-set", action="store_true", help="只生成, 不设置为系统壁纸")
     return ap
@@ -204,9 +235,18 @@ def main(argv=None):
     ap = build_parser()
     args = ap.parse_args(argv)
 
+    # 子命令到呈现方式的映射。
+    # 注意: 不能用 sub.add_parser(...).set_defaults(mode=...) —— 父解析器的
+    # 位置参数 mode(默认 None)argparse 会覆盖子解析器设的同名默认值, 结果
+    # `genshen-cp2 cover` 反而走了默认的 single1。所以在解析之后显式改写。
+    SUBCOMMAND_MODE = {"cover": "cover1", "showall": "showall", "card": "single1"}
+
     if getattr(args, "func", None):
         sc.ensure_pillow()
         sc.ensure_dirs()
+        if args.cmd in SUBCOMMAND_MODE:
+            args.mode = SUBCOMMAND_MODE[args.cmd]
+            args.cover = False
         try:
             return args.func(args)
         except KeyboardInterrupt:
