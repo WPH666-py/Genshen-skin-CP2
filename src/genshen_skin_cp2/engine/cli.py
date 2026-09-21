@@ -54,13 +54,18 @@ def _cmd_list(args):
         mark = " *默认" if key == sc.DEFAULT_MODE else ""
         print("  %-9s %s%s" % (key, label, mark))
     print("-" * 58)
-    if sc.count() > 1:
+    n = sc.count()
+    if n > 1:
+        # 多张素材: 用序号选图、用 single/cover/showall 前缀选摆法
         print("  用法: %s <模式名或序号>  |  %s random  |  %s switcher"
               % (C.APP_SLUG, C.APP_SLUG, C.APP_SLUG))
+        print("  说明: %d 张素材 x 三种摆法 = %d 种壁纸; 序号选图, 前缀选摆法。"
+              % (n, len(sc.MODES)))
     else:
-        print("  用法: %s [card|cover|showall]  |  %s switcher  |  %s pet"
+        # 单张素材: 三种摆法即全部, 直接列出来更直观
+        print("  用法: %s [card|cover|showall]  |  %s random  |  %s switcher"
               % (C.APP_SLUG, C.APP_SLUG, C.APP_SLUG))
-        print("  说明: 三张素材 x 三种摆法 = 9 种壁纸, 用序号选图、用 single/cover/showall 选摆法。")
+        print("  说明: 本套件只有一张素材, 以上三种是同一张图的三种摆法。")
     return 0
 
 
